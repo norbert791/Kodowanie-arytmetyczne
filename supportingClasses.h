@@ -4,9 +4,17 @@
 #include<limits>
 
 #define ull unsigned long long
+#define uc unsigned char
 
 class BitWriter {
     public:
+        BitWriter(const std::string& outputName, ull fileLength) {
+            output = std::ofstream(outputName);
+            if (!output.good()) {
+                throw std::logic_error("IO exception");
+            }
+            output<<fileLength;
+        }
         BitWriter(const std::string& outputName) {
             output = std::ofstream(outputName);
             if (!output.good()) {
@@ -31,13 +39,48 @@ class BitWriter {
                 buffer = 0;
             }
         }
+        ~BitWriter() {
+            output.close();
+        }   
     private:
         unsigned char buffer = 0;
         unsigned char bufferCounter = 0;
         std::ofstream output;
-    ~BitWriter() {
-        output.close();
-    }
+};
+
+class BitReader {
+    public:
+        BitReader(const std::string& inputName) {
+            input = std::ifstream(inputName);
+            if (!input.good()) {
+                throw std::logic_error("IO exception");
+            }
+        }
+        uc getBit () {
+            if ( (msbMask & buffer) == msbMask) {
+                buffer = (ull) (buffer <<1);
+                return 1;
+            }
+            else {
+                buffer = (ull) (buffer <<1);
+                return 0;
+            }
+            bufferCounter++;
+            if (bufferCounter == 8) {
+                bufferCounter = 0;
+                input>>buffer;
+            }
+        }
+        ull readTag() {
+            ull temp;
+            input>>temp;
+            return temp;
+        }
+    private:
+        uc buffer;
+        uc bufferCounter = 0;
+        const static ull msbMask = 9223372036854775808U; //binary 1000.....
+        std::ifstream input;
 };
 
 class Model {
@@ -45,6 +88,9 @@ class Model {
         virtual void increaseFrequency(unsigned char symbol) = 0;
         virtual void updateProbabilities() = 0;
         virtual void rescale() = 0;
+        virtual ull* getPartialSums() = 0;
+        virtual ull getTotalLength() = 0;
+        virtual ~Model() = default;
 };
 
 class MyModel : public Model {
@@ -72,6 +118,14 @@ class MyModel : public Model {
                 frequencies[i] = frequencies[i] / 2 > 0 ? frequencies[i] / 2 : 1;
                 totalLength += frequencies[i];
             }
+        }
+
+        ull* getPartialSums() {
+            return partialSums;
+        }
+
+        ull getTotalLength() {
+            return totalLength;
         }
     private:
        ull totalLength = 256;

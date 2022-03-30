@@ -5,6 +5,7 @@
 #include<map>
 #include<exception>
 #include<cmath>
+#include "supportingClasses.h"
 
 using namespace std;
 
