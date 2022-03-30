@@ -1,2 +1,2 @@
 # Kodowanie-arytmetyczne
-Adaptacyjne kodowanie arytmetyczne na KikD lista 2
+Adaptacyjne kodowanie arytmetyczne na KiKD lista 2
