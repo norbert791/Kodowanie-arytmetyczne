@@ -3,6 +3,7 @@
 #include<exception>
 #include<map>
 #include<limits>
+#include<cmath>
 
 using namespace std;
 
@@ -20,6 +21,7 @@ class Decoder {
     private:
         const uc bytesToRead = 8;
         ull totalCount = 256;
+        ull finalLength = 0;
         ull partialSums[alphabetSize + 1] = {0};
         map<uc,ull> frequencies{};
         void updateSums() {
@@ -75,6 +77,9 @@ void Decoder::decode(string inputFileName, string outputFileName) {
 
     ull prevl, prevu;
 
+    inputStream>>finalLength;
+    cout<<finalLength<<endl;
+
     //Decoding
     inputStream>>tag;
     do {
@@ -87,17 +92,17 @@ void Decoder::decode(string inputFileName, string outputFileName) {
         prevl = l;
         prevu = u;
         
-
-        while(((tag-l+1) * totalCount-1) / (u-l+1) >= partialSums[k]) {
+        while((ull)ceil(((tag-l+1) * totalCount-1) / ((u-l+1.0))) >= partialSums[k]) {
             k++;
         }
         outputBuffer = (uc) k;
         frequencies.at(outputBuffer)++;
         outputStream<<outputBuffer;
+        cout<<outputBuffer<<endl;
         currentCount++;
 
-        l = prevl + ((prevu - prevl + 1) * partialSums[outputBuffer - 1]) / totalCount;
-        u = prevl + ((prevu - prevl + 1) * partialSums[outputBuffer]) / totalCount - 1;
+        l = prevl + (ull)ceil(((prevu*1.0 - prevl + 1) * partialSums[outputBuffer - 1]) / totalCount);
+        u = prevl + (ull)ceil(((prevu*1.0 - prevl + 1) * partialSums[outputBuffer]) / totalCount) - 1;
 
         while (((l & msbMask) == (u & msbMask)) || ((l & secMsbMask) == secMsbMask && (u & secMsbMask) == 0)) {
             if (((l & msbMask) == ( u & msbMask))) {
@@ -134,8 +139,8 @@ void Decoder::decode(string inputFileName, string outputFileName) {
             currentCount = totalCount;
         }
         }
-        
-    } while(inputStream.peek() != EOF);
+        finalLength--;
+    } while(finalLength > 0);
     outputStream.close();
     inputStream.close();
 }

@@ -10,8 +10,6 @@ using namespace std;
 int main () {
     char chuj;
     ifstream temp("testOutput2.txt");
-    while(temp.peek() != EOF) {
-        temp>>chuj;
-        cout<<chuj<<endl;
-    }
+    unsigned char temp2 = 255;
+    cout<<((unsigned char) ((temp2 << 1) + 2 + 65) )<<endl;
 }

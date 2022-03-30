@@ -64,12 +64,19 @@ void Encoder::encode(string inputFileName, string outputFileName) {
     ull l = 0, u = numeric_limits<ull>::max();
     ull scale3 = 0;
     ull currentCount = totalCount;
-    
+        
 
     if (!inputFile.good() || !outputFile.good()) {
         throw exception();
     }
-
+    while (inputFile.peek() != EOF) {
+        finalLength++;
+        inputFile>>tempInput;
+    }
+    inputFile.seekg (0, ios::beg);
+    outputFile<<finalLength;
+    cout<<finalLength<<endl;
+    
     frequencies.insert(make_pair(0,1));
     partialSums[0] = 0;
     
@@ -80,15 +87,15 @@ void Encoder::encode(string inputFileName, string outputFileName) {
     ull prevl, prevu;
     uc bit;
 
-    while (inputFile.peek() != EOF) {
+    while (finalLength > 0) {
         inputFile>>tempInput;
-        cout<<"here1 "<<currentCount<<endl;
         prevl = l, prevu = u;
         frequencies.at(tempInput)++;
-        l = prevl + (prevu - prevl + 1) * partialSums[tempInput] / totalCount;
-        u = prevu + (prevu - prevl + 1) * partialSums[tempInput + 1] / totalCount - 1;
+        l = prevl + (ull)floor((prevu*1.0 - prevl + 1) * partialSums[tempInput] / totalCount);
+        u = prevl + (ull)floor((prevu*1.0 - prevl + 1) * partialSums[tempInput + 1] / totalCount) - 1;
+        cout<<l<<" "<<u<<" "<<endl;
         while (((l & msbMask) == (u & msbMask)) || ((l & secMsbMask) == secMsbMask && (u & secMsbMask) == 0)) {
-            if (((l & msbMask) ==( u & msbMask))) {
+            if (((l & msbMask) == ( u & msbMask))) {
                 bit = (l & msbMask) == 0 ? 0 : 1;
                 outputBuffer = outputBuffer << 1;
                 outputBuffer += 1;
@@ -96,12 +103,10 @@ void Encoder::encode(string inputFileName, string outputFileName) {
                 if (bufferCounter == 0) {
                     outputFile<<outputBuffer;
                     outputBuffer = 0;
-                    cout<<"here4"<<endl;
                 }
                 l = l<<1;
                 u = (u<<1) + 1;
                 while (scale3 > 0) {
-                    cout<<"here3 "<<currentCount<<endl;
                     bit = bit ^ 1;
                     outputBuffer = outputBuffer << 1;
                     outputBuffer += 1;
@@ -112,7 +117,6 @@ void Encoder::encode(string inputFileName, string outputFileName) {
                     }
                     scale3--;
                 }
-                cout<<"here6"<<endl;
             }
             if ((l & secMsbMask) == secMsbMask && (u & secMsbMask) == 0) {
                 l = l << 1;
@@ -121,20 +125,17 @@ void Encoder::encode(string inputFileName, string outputFileName) {
                 u = u ^ msbMask;
                 scale3++;
             }
-           cout<<"here2 "<<currentCount<<endl;
-           cout<<l<<" "<<u<<" "<<endl;
         }
-        cout<<"here 7"<<endl;
         currentCount++;
         if (currentCount % 256 == 0) {
             updateSums();
         }
-        cout<<"here 8"<<endl;
         if (currentCount == numeric_limits<ull>::max() / 4) {
             updateSums();
             rescale(this->frequencies);
         
         }
+        finalLength--;
     }
     if (bufferCounter > 0) {
         outputBuffer = outputBuffer << (bufferSize - bufferCounter);
