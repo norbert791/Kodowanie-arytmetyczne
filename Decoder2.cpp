@@ -48,16 +48,16 @@ void Decoder::decode(string inputFileName, string outputFileName) {
     while (inputLength > 0) {
         tag = reader->readTag();
         uc k = 0;
-        while ((ull) floor(((tag * 1.0 - l + 1) * model->getTotalLength() - 1) / (u - l + 1)) >= model->getPartialSums()[k]) {
+        while ((ull) floor(((tag * 1.0 - l + 1) * model->getTotalLength() - 1) / (u * 1.0 - l + 1)) >= model->getPartialSums()[k]) {
             k++;
         }
-        writer<<(k-1);
+        writer<<(k);
         
         prevu = u;
         prevl = l;
         
-        l = prevl + (ull)floor(((prevu * 1.0 - prevl + 1) * model->getPartialSums()[k - 1]) / model->getTotalLength());
-        u = prevl + (ull)floor(((prevu * 1.0 - prevl + 1) * model->getPartialSums()[k]) / model->getTotalLength()) - 1;
+        l = prevl + (ull)floor(((prevu * 1.0 - prevl + 1) * model->getPartialSums()[k]) / model->getTotalLength());
+        u = prevl + (ull)floor(((prevu * 1.0 - prevl + 1) * model->getPartialSums()[k + 1]) / model->getTotalLength()) - 1;
 
         while (((l & msbMask) == (u & msbMask)) || ((l & secMsbMask) == secMsbMask && (u & secMsbMask) == 0)) {
             if (((l & msbMask) == ( u & msbMask))) {

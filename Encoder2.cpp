@@ -59,14 +59,14 @@ void Encoder::encode(string inputFileName, string outputFileName) {
         inputFile>>tempInput;
         prevl = l, prevu = u;
         model->increaseFrequency(tempInput);
-        l = prevl + (ull) floor((prevu*1.0 - prevl + 1) * model->getPartialSums()[tempInput] / model->getTotalLength());
-        u = prevl + (ull) floor((prevu*1.0 - prevl + 1) * model->getPartialSums()[tempInput + 1] / model->getTotalLength()) - 1;
+        l = prevl + (ull) floor(((prevu*1.0 - prevl + 1) * model->getPartialSums()[tempInput]) / model->getTotalLength());
+        u = prevl + (ull) floor(((prevu*1.0 - prevl + 1) * model->getPartialSums()[tempInput + 1]) / model->getTotalLength()) - 1;
         cout<<l<<" "<<u<<" "<<endl;
         while (((l & msbMask) == (u & msbMask)) || ((l & secMsbMask) == secMsbMask && (u & secMsbMask) == 0)) {
             if (((l & msbMask) == ( u & msbMask))) {
-                bit = (l & msbMask) == 0 ? 0 : 1;
+                bit = (l & msbMask) == msbMask ? 1 : 0;
                 writer->writeBit(bit);
-                l = (ull) l<<1;
+                l = (ull) (l<<1);
                 u = (ull) (u<<1) + 1;
                 while (scale3 > 0) {
                     bit = bit ^ 1;

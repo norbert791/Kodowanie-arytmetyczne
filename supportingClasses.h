@@ -22,6 +22,7 @@ class BitWriter {
             }
         }
         void writeBit(const unsigned char bit) {
+            std::cout<<(int)bit<<std::endl;
             if (bit == 1) {
                 buffer = (unsigned char)(buffer<<1) + 1;
                 bufferCounter++;
@@ -58,11 +59,11 @@ class BitReader {
         }
         uc getBit () {
             if ( (msbMask & buffer) == msbMask) {
-                buffer = (ull) (buffer <<1);
+                buffer = (uc) (buffer <<1);
                 return 1;
             }
             else {
-                buffer = (ull) (buffer <<1);
+                buffer = (uc) (buffer <<1);
                 return 0;
             }
             bufferCounter++;
@@ -79,7 +80,7 @@ class BitReader {
     private:
         uc buffer;
         uc bufferCounter = 0;
-        const static ull msbMask = 9223372036854775808U; //binary 1000.....
+        const static uc msbMask = 128; 
         std::ifstream input;
 };
 
