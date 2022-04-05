@@ -13,23 +13,23 @@ using namespace std;
 #define uc unsigned char 
 
 const int alphabetSize = 256;
-const uint32_t msbMask = 0x80000000; //binary 1000.....
-const uint32_t secMsbMask = 0x040000000; //second msb mask 
+const uint8_t msbMask = 128; //binary 1000.....
+const uint8_t secMsbMask = 64; //second msb mask 
 
 class Decoder {
     public:
         void decode(string inputFileName, string outputFileName);
     private:
-        Model* model = new MyModel();
+        Model* model = new TestingModel();
 
 };
 
 void Decoder::decode(string inputFileName, string outputFileName) {
     ofstream writer(outputFileName);
-    uint32_t l = 0, u = numeric_limits<uint32_t>::max();
-    uint32_t inputLength = 0;
-    uint32_t prevl, prevu;
-    uint32_t tag;
+    uint8_t l = 0, u = numeric_limits<uint8_t>::max();
+    uint8_t inputLength = 0;
+    uint8_t prevl, prevu;
+    uint8_t tag;
     unique_ptr<BitReader> reader;
     
     try {
@@ -37,41 +37,39 @@ void Decoder::decode(string inputFileName, string outputFileName) {
             throw logic_error("Input error");
         }
         reader = make_unique<BitReader>(inputFileName);
-        inputLength = reader->readLength();
-       
+       // inputLength = reader->readTag();
+       inputLength = 4;
     } catch(logic_error &e) {
         cerr<<e.what()<<endl;
         exit(1);
     }
-   // cout<<inputLength<<endl;
     tag = reader->readTag();
-  //  cout<<tag<<endl;
     while (inputLength > 0) {
         
         uc k = 0;
-      //  cout<<"tag: "<<(int)tag<<endl;
-        while ((uint32_t)((((uint64_t) tag - l + 1) *  model->getTotalLength() - 1) / ((uint64_t)u - l + 1)) >= model->getPartialSums()[k]) {
+        cout<<"tag: "<<(int)tag<<endl;
+        while ((uint8_t)((((uint64_t) tag - l + 1) *  model->getTotalLength() - 1) / ((uint64_t)u - l + 1)) >= model->getPartialSums()[k]) {
             k++;
         }
-       // cout<<"while: "<<(int)(uint32_t)((((uint64_t) tag - l + 1) *  model->getTotalLength() - 1) / ((uint64_t)u - l + 1))<<endl;
+        cout<<"while: "<<(int)(uint8_t)((((uint64_t) tag - l + 1) *  model->getTotalLength() - 1) / ((uint64_t)u - l + 1))<<endl;
         k -= 1;
         writer<<(k);
         prevu = u;
         prevl = l;
 
-        l = prevl + (uint32_t)((((uint64_t)prevu - prevl + 1) * model->getPartialSums()[k]) / model->getTotalLength());
-        u = prevl + (uint32_t)((((uint64_t)prevu - prevl + 1) * model->getPartialSums()[k + 1]) / model->getTotalLength()) - 1;
-   //     cout<<(int)l<<" "<<(int)u<<endl;
+        l = prevl + (uint8_t)((((uint64_t)prevu - prevl + 1) * model->getPartialSums()[k]) / model->getTotalLength());
+        u = prevl + (uint8_t)((((uint64_t)prevu - prevl + 1) * model->getPartialSums()[k + 1]) / model->getTotalLength()) - 1;
+        cout<<(int)l<<" "<<(int)u<<endl;
         while (((l & msbMask) == (u & msbMask)) || ((l & secMsbMask) == secMsbMask && (u & secMsbMask) == 0)) {
             if (((l & msbMask) == ( u & msbMask))) {
-                l = (uint32_t) (l <<1);
-                u = (uint32_t) (u <<1) + 1;
-                tag = (uint32_t) (tag <<1) + reader->getBit();
+                l = (uint8_t) (l <<1);
+                u = (uint8_t) (u <<1) + 1;
+                tag = (uint8_t) (tag <<1) + reader->getBit();
             }
 
             if ((l & secMsbMask) == secMsbMask && (u & secMsbMask) == 0) {
-                l = (uint32_t) (l <<1);
-                u = (uint32_t) (u <<1) + 1;
+                l = (uint8_t) (l <<1);
+                u = (uint8_t) (u <<1) + 1;
                 tag = (tag <<1) + reader->getBit();
                 l = l ^ msbMask;
                 u = u ^ msbMask;
