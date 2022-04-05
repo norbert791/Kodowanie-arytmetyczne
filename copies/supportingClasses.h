@@ -8,7 +8,6 @@
 
 class BitWriter {
     public:
-        [[deprecated]]
         BitWriter(const std::string& outputName, uint32_t fileLength) {
             output = std::ofstream(outputName);
             if (!output.good()) {
@@ -29,30 +28,22 @@ class BitWriter {
                 writeBit(!bit);
                 scale3--;
             }
-            for (int i = 0; i < 31; i++) {
-                tag =  (uint32_t)(tag<<1);
+            for (int i = 0; i < 7; i++) {
+                tag =  (uint8_t)(tag<<1);
                 bit = ((tag & msbMask) == msbMask);
                 writeBit(bit);
             }
         }
         void writeBit(const bool input) {
-      //      std::cout<<"bool: "<<input<<std::endl;
+            std::cout<<"bool: "<<input<<std::endl;
             buffer = (unsigned char)(buffer<<1);
             buffer += input ? 1 : 0;
-       //     std::cout<<"buffer "<<(int)buffer<<std::endl;
+            std::cout<<"buffer "<<(int)buffer<<std::endl;
             bufferCounter++;
             if (bufferCounter == 8) {
                 bufferCounter = 0;
                 output.put(buffer);
                 buffer = 0;
-            }
-        }
-        void writeLength(int32_t input) {
-            
-            for (int i = 0; i < 32; i++) {
-                bool bit = ( (msbMask & input) ==  msbMask);
-                writeBit(bit);
-                input = (input << 1);
             }
         }
         ~BitWriter() {
@@ -68,7 +59,7 @@ class BitWriter {
     private:
         unsigned char buffer = 0;
         unsigned char bufferCounter = 0;
-        const static uint32_t msbMask = 0x80000000;//0x80000000;
+        const static uint8_t msbMask = 128;//0x80000000;
         std::ofstream output;
 };
 
@@ -100,27 +91,14 @@ class BitReader {
                 bufferCounter = 0;
                 buffer = input.get();
             }
-      //      std::cout<<result<<std::endl;
+            std::cout<<result<<std::endl;
             return result;
         }
-        uint32_t readTag() {
-            uint32_t result = 0;
-            for (int i = 0; i < 4; i++) {
-                buffer = input.get();
-                result = result << 8;
-                result += buffer;
-            }
+        uint8_t readTag() {
+            uint8_t temp;
+            input>>temp;
             buffer = input.get();
-            return result;
-        }
-        uint32_t readLength() {
-            uint32_t result = 0;
-            for (int i = 0; i < 4; i++) {
-                buffer = input.get();
-                result = result << 8;
-                result += buffer;
-            }
-            return result;
+            return temp;
         }
     private:
         uc buffer;
