@@ -2,6 +2,7 @@
 #include<string>
 #include<exception>
 #include<limits>
+#include<cmath>
 
 #define uc unsigned char
 
@@ -21,6 +22,9 @@ class BitWriter {
             if (!output.good()) {
                 throw std::logic_error("IO exception");
             }
+        }
+        size_t getFinalSize() {
+            return finalSize;
         }
         void writeTag(uint32_t tag, uint32_t scale3) {
             bool bit = ((tag & msbMask) == msbMask);
@@ -45,6 +49,7 @@ class BitWriter {
                 bufferCounter = 0;
                 output.put(buffer);
                 buffer = 0;
+                finalSize++;
             }
         }
         void writeLength(int32_t input) {
@@ -55,11 +60,13 @@ class BitWriter {
                 input = (input << 1);
             }
         }
+        size_t bytesWrote() {return finalSize;}
         ~BitWriter() {
             if (bufferCounter > 0) {
             while (bufferCounter < 8) {
                 buffer = (uc)(buffer << 1);
                 bufferCounter++;
+                finalSize++;
             }
             output.put(buffer);
         }
@@ -69,6 +76,7 @@ class BitWriter {
         unsigned char buffer = 0;
         unsigned char bufferCounter = 0;
         const static uint32_t msbMask = 0x80000000;//0x80000000;
+        size_t finalSize = 0;
         std::ofstream output;
 };
 
@@ -136,11 +144,22 @@ class Model {
         virtual void rescale() = 0;
         virtual uint32_t* getPartialSums() = 0;
         virtual uint32_t getTotalLength() = 0;
+        virtual size_t getFinalLength() = 0;
+        virtual double getEntropy() = 0;
         virtual ~Model() = default;
 };
 
 class MyModel : public Model {
     public:
+        double getEntropy() override {
+            double result = 0;
+            for (int i = 0; i < 256; i++) {
+                double temp = frequencies[i] * 1.0 / finalLength;
+                result += temp * log2(temp);
+            }
+            return -result;
+        }
+        size_t getFinalLength() override {return finalLength;}
         MyModel() {
             for (int i = 0; i < 256; i++) {
             frequencies[i] = 1;
@@ -149,12 +168,15 @@ class MyModel : public Model {
         }
 
         void increaseFrequency(unsigned char symbol) override{
+            finalLength++;
             frequencies[symbol]++;
         }
 
         void updateProbabilities() override{
+            totalLength = 0;
             for (int i = 1; i < 257; i++) {
                 partialSums[i] = partialSums[i - 1] + frequencies[i - 1];
+                totalLength += frequencies[i - 1];
             }
         }
 
@@ -164,6 +186,7 @@ class MyModel : public Model {
                 frequencies[i] = frequencies[i] / 2 > 0 ? frequencies[i] / 2 : 1;
                 totalLength += frequencies[i];
             }
+           std::cout<<"Rescaled"<<std::endl;
         }
 
         uint32_t* getPartialSums() override{
@@ -177,7 +200,7 @@ class MyModel : public Model {
        uint32_t totalLength = 256;
        uint32_t partialSums[257] = {0};
        uint32_t frequencies[256] = {0};
-       
+       size_t finalLength = 0;
 };
 
 class TestingModel : public MyModel {

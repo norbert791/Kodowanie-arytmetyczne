@@ -12,7 +12,6 @@ using namespace std;
 
 #define uc unsigned char 
 
-const int alphabetSize = 256;
 const uint32_t msbMask = 0x80000000; //binary 1000.....
 const uint32_t secMsbMask = 0x040000000; //second msb mask 
 
@@ -31,7 +30,8 @@ void Decoder::decode(string inputFileName, string outputFileName) {
     uint32_t prevl, prevu;
     uint32_t tag;
     unique_ptr<BitReader> reader;
-    
+    size_t currentCount = 0;
+
     try {
         if (!writer.good()) {
             throw logic_error("Input error");
@@ -47,15 +47,18 @@ void Decoder::decode(string inputFileName, string outputFileName) {
     tag = reader->readTag();
   //  cout<<tag<<endl;
     while (inputLength > 0) {
-        
-        uc k = 0;
+        //cout<<model->getFinalLength()<<endl;
+        int16_t k = 0;
       //  cout<<"tag: "<<(int)tag<<endl;
         while ((uint32_t)((((uint64_t) tag - l + 1) *  model->getTotalLength() - 1) / ((uint64_t)u - l + 1)) >= model->getPartialSums()[k]) {
             k++;
         }
+        //cout<<model->getFinalLength()<<endl;
+
        // cout<<"while: "<<(int)(uint32_t)((((uint64_t) tag - l + 1) *  model->getTotalLength() - 1) / ((uint64_t)u - l + 1))<<endl;
         k -= 1;
-        writer<<(k);
+        writer<<((unsigned char)k);
+        model->increaseFrequency((unsigned char)k);
         prevu = u;
         prevl = l;
 
@@ -79,6 +82,15 @@ void Decoder::decode(string inputFileName, string outputFileName) {
             }
         }
         inputLength--;
+        currentCount++;
+        if (currentCount % 256 == 0) {
+            model->updateProbabilities();
+        }
+        if (currentCount == numeric_limits<uint32_t>::max() / 4) {
+            model->updateProbabilities();
+            model->rescale();
+            currentCount = model->getTotalLength();
+        }
     }
 }
 

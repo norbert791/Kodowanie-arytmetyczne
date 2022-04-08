@@ -14,7 +14,6 @@ using namespace std;
 #define uint unsigned int
 #define uc unsigned char 
 
-const int alphabetSize = 256;
 const uint32_t msbMask = 0x80000000;//0x80000000; //binary 1000.....
 const uint32_t secMsbMask = 0x040000000;//0x040000000; //second msb mask 
 
@@ -26,7 +25,7 @@ class Encoder {
         }
     private: 
         Model* model = new MyModel();
-
+         
 };
 
 void Encoder::encode(string inputFileName, string outputFileName) {
@@ -98,8 +97,11 @@ void Encoder::encode(string inputFileName, string outputFileName) {
    }
  //  cout<<(int)scale3<<endl;
    writer->writeTag(l, scale3);
+   cout<<"Entropia pliku: "<< model->getEntropy()<<endl;
+   cout<<"Średnia długość symbolu "<< writer->getFinalSize() * 1.0 / model->getFinalLength()<<endl;
+   cout<<"Średni stopień kompresji "<< model->getFinalLength() * 1.0 / writer->getFinalSize()<<endl;
    
-}
+};
 
 int main(int N, char** args) {
     try {

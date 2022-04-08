@@ -1,0 +1,47 @@
+Sample png:
+
+Entropia pliku: 7.9812
+Stopień kompresji: 1.00233
+Średnia długość symbolu: 0.997676
+
+Pdf:
+
+Entropia pliku: 7.99473
+Stopień kompresji: 1.00063
+Średnia długość symbolu: 0.99937
+
+Sample docx:
+
+Entropia pliku: 7.97182
+Stopień kompresji: 1.00347
+Średnia długość symbolu: 0.996544
+
+Pride and Prejudice:
+
+Entropia pliku: 4.48093
+Stopień kompresji: 1.7856
+Średnia długość symbolu: 0.560035
+
+Pan Tadeusz:
+
+Entropia pliku: 5.04716
+Stopień kompresji: 1.58542
+Średnia długość symbolu: 0.630747
+
+test1.bin:
+
+Entropia pliku: 0.00486236
+Stopień kompresji: 1623.18
+Średnia długość symbolu: 0.000616074
+
+test2.bin:
+
+Entropia pliku: 8.0016
+Stopień kompresji: 0.93651
+Średnia długość symbolu: 1.06779
+
+test3.bin
+
+Entropia pliku: 8.0016
+Stopień kompresji: 0.992548
+Średnia długość symbolu: 1.00751
